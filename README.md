@@ -1,1 +1,1 @@
-A study project to understand cryptocurrency and blockchain better.
+A study project to understand cryptocurrencies and blockchain better.

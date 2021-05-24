@@ -58,6 +58,9 @@ class Blockchain:
         return self.chain[-1]
 
     def proof_of_work(self, previous_proof):
+        """
+        Calculates the proof of work for a block to be added in the chain
+        """
         new_proof = 1
         check_proof = False
         while check_proof is False:
@@ -70,10 +73,16 @@ class Blockchain:
         return new_proof
 
     def hash(self, block):
+        """
+        Provides the hash value of the block.
+        """
         encoded_block = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(encoded_block).hexdigest()
 
     def is_chain_valid(self, chain):
+        """
+        Validates whether the chain is the longest / latest.
+        """
         previous_block = chain[0]
         block_index = 1
         while block_index < len(chain):
@@ -91,6 +100,9 @@ class Blockchain:
         return True
 
     def add_transaction(self, sender, receiver, amount):
+        """
+        Adds a new transaction to a block
+        """
         self.transactions.append({
             "sender": sender,
             "receiver": receiver,
@@ -100,10 +112,16 @@ class Blockchain:
         return previous_block["index"]+1
 
     def add_node(self, address):
+        """
+        Allows adding new nodes to the block chain
+        """
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
 
     def replace_chain(self):
+        """
+        Replaces the block chain with the longest version
+        """
         network = self.nodes
         longest_chain = None
         max_length = len(self.chain)
@@ -121,8 +139,6 @@ class Blockchain:
             return True
         return False
 
-# Mining Blockchain
-
 # Expose the block chain via Flask web app
 app = Flask(__name__)
 
@@ -132,11 +148,11 @@ node_address = str(uuid4()).replace("-","")
 # Instantiate Blockchain
 blockchain = Blockchain()
 
-# Mining a new block
-
-
 @app.route("/mine_block", methods=["GET"])
 def mine_block():
+    """
+    Mines a new block for transactions
+    """
     previous_block = blockchain.get_previous_block()
     previous_proof = previous_block["proof"]
     proof = blockchain.proof_of_work(previous_proof)
@@ -156,6 +172,9 @@ def mine_block():
 
 @app.route("/get_chain", methods=["GET"])
 def get_chain():
+    """
+    Displays the current chain on a node.
+    """
     response = {
         "chain": blockchain.chain,
         "length": len(blockchain.chain)
@@ -165,6 +184,9 @@ def get_chain():
 
 @app.route("/is_valid", methods=["GET"])
 def is_valid():
+    """
+    Calls for blockchain validation.
+    """
     chain = blockchain.chain
     if blockchain.is_chain_valid(chain):
         response = {
@@ -176,9 +198,11 @@ def is_valid():
         }
     return jsonify(response), 200
 
-# Add a new transaction to the Blockchain
 @app.route("/add_transaction", methods = ["POST"])
 def add_transaction():
+    """
+    Adds a new transaction to blockchain
+    """
     json = request.get_json()
     transaction_keys = ["sender", "receiver", "amount"]
     if not all (key in json for key in transaction_keys):
@@ -189,10 +213,11 @@ def add_transaction():
         }
     return jsonify(response), 201
 
-# Decentralized block chain
-# Connect nodes
 @app.route("/connect_node", methods = ["POST"])
 def connect_node():
+    """
+    Connects the node to a decentralized P2P network.
+    """
     json = request.get_json()
     nodes = json.get("nodes")
     if nodes is None:
@@ -205,9 +230,11 @@ def connect_node():
         }
     return jsonify(response), 201 
 
-# Replace the chain by the longest chain if needed
 @app.route("/replace_chain", methods=["GET"])
 def replace_chain():
+    """
+    Replace the chain by the longest chain if needed
+    """
     if blockchain.replace_chain():
         response = {
             "message": "Chain was replaced by the longest one!",
@@ -220,5 +247,5 @@ def replace_chain():
         }
     return jsonify(response), 200
 
-# Run the application
+# Run the blockchain as a web application on a node
 app.run(host="0.0.0.0", port=5001)
